@@ -1,3 +1,5 @@
+local tf = require('table_functions')
+
 local function is_normal_window(window_config)
     return not window_config.external and window_config.relative == ''
 end
@@ -19,6 +21,97 @@ local function normalize_layout(layout)
     end
 
     return result
+end
+
+
+local function get_windows()
+    local result = {}
+    for _, window_id in ipairs(vim.api.nvim_tabpage_list_wins(0)) do
+        local config = vim.api.nvim_win_get_config(window_id)
+        if is_normal_window(config) then
+            local row, column = unpack(vim.api.nvim_win_get_position(window_id))
+            table.insert(result, {
+                id = window_id,
+                row = row,
+                column = column,
+            })
+        end
+    end
+    return result
+end
+
+local function build_columns(windows)
+    local top_row = tf.min(tf.map(windows, function(win) return win.row end))
+    local top_windows = tf.filter(windows, function(win) return win.row == top_row end)
+    local column_indexes = tf.flip_kvps(tf.sort(tf.map(top_windows, function(win) return win.column end)))
+
+    local columns = {}
+    local remaining = {}
+    for _, win in ipairs(windows) do
+        local column_index = column_indexes[win.column]
+        if column_index then
+            columns[column_index] = columns[column_index] or {}
+            table.insert(columns[column_index], win)
+        else
+            table.insert(remaining, win)
+        end
+    end
+
+    for _, column in ipairs(columns) do
+        table.sort(column, function(a, b)
+            return a.row < b.row
+        end)
+    end
+
+    return columns, remaining
+end
+
+local function get_window_layout()
+    local windows = get_windows()
+    local columns, remaining = build_columns(windows)
+    return columns
+end
+
+local function get_column_index(columns, window_id)
+    for c, column in ipairs(columns) do
+        for r, window in ipairs(column) do
+            if window.id == window_id then
+                return c, r
+            end
+        end
+    end
+end
+
+local function create_context()
+    local columns = get_window_layout()
+    local window_id = vim.api.nvim_tabpage_get_win(0)
+    return {
+        columns = columns,
+        window_id = window_id,
+        column_index = get_column_index(columns, window_id),
+    }
+end
+
+local function restore_column(column)
+    for i = #column, 2, -1 do
+        vim.fn.win_splitmove(column[i].id, column[1].id, { vertical = false, rightbelow = true })
+    end
+end
+
+local function move_column(direction)
+    local ctx = create_context()
+
+    if direction == 'left' and ctx.column_index == 1 or direction == 'right' and ctx.column_index == #ctx.columns then
+        return
+    end
+
+    local offset = direction == 'left' and -1 or 1
+    local current_column = ctx.columns[ctx.column_index]
+    local target_column = ctx.columns[ctx.column_index + offset]
+    vim.fn.win_splitmove(current_column[1].id, target_column[1].id,
+        { vertical = true, rightbelow = direction == 'right' })
+    restore_column(current_column)
+    restore_column(target_column)
 end
 
 local function create_current_layout(tab_id)
@@ -95,21 +188,6 @@ local function get_window_info(tab_id)
     local current_window_id = vim.api.nvim_tabpage_get_win(tab_id)
     local column_nr = get_window_column_nr(layout, current_window_id)
     return layout, current_window_id, column_nr
-end
-
-local function move_column(direction)
-    local layout, current_window_id, column_nr = get_window_info(0)
-
-    if direction == 'left' and column_nr == 1 or direction == 'right' and column_nr == #layout then
-        return
-    end
-
-    local offset = direction == 'left' and -1 or 1
-    local target_column = layout[column_nr + offset]
-    vim.fn.win_splitmove(current_window_id, target_column[1], { vertical = true, rightbelow = direction == 'right' })
-    for i = #target_column, 2, -1 do
-        vim.fn.win_splitmove(target_column[i], target_column[1], { vertical = false, rightbelow = true })
-    end
 end
 
 local function get_window_index_at_row(row_nr, column)
