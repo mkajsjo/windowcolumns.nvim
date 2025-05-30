@@ -92,9 +92,11 @@ local function create_context()
     }
 end
 
-local function restore_column(column)
+local function restore_column(column, skip)
     for i = #column, 2, -1 do
-        vim.fn.win_splitmove(column[i].id, column[1].id, { vertical = false, rightbelow = true })
+        if column[i].id ~= skip then
+            vim.fn.win_splitmove(column[i].id, column[1].id, { vertical = false, rightbelow = true })
+        end
     end
 end
 
@@ -108,8 +110,12 @@ local function move_column(direction)
     local offset = direction == 'left' and -1 or 1
     local current_column = ctx.columns[ctx.column_index]
     local target_column = ctx.columns[ctx.column_index + offset]
-    vim.fn.win_splitmove(current_column[1].id, target_column[1].id,
-        { vertical = true, rightbelow = direction == 'right' })
+
+    vim.fn.win_splitmove(
+        current_column[1].id,
+        target_column[1].id,
+        { vertical = true, rightbelow = direction == 'right' }
+    )
     restore_column(current_column)
     restore_column(target_column)
 end
@@ -365,20 +371,22 @@ function M.move_buffer_down()
 end
 
 function M.vsplit()
-    local layout, _, column_nr = get_window_info(0)
+    local ctx = create_context()
 
     vim.cmd 'vsplit'
 
-    if #layout[column_nr] == 1 then
+    local current_column = ctx.columns[ctx.column_index]
+    if #current_column == 1 then
         return
     end
 
     local new_window_id = vim.api.nvim_tabpage_get_win(0)
-    vim.cmd 'wincmd H'
-
-    local offset = vim.opt.splitright and 0 or -1
-    restore_left(layout, column_nr + offset)
-
+    vim.fn.win_splitmove(
+        new_window_id,
+        current_column[1].id,
+        { vertical = true, rightbelow = vim.opt.splitright:get() }
+    )
+    restore_column(current_column)
     vim.api.nvim_set_current_win(new_window_id)
 end
 
