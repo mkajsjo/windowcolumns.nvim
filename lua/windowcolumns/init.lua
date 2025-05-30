@@ -104,15 +104,12 @@ local function move_column(direction)
         return
     end
 
-    if direction == 'left' then
-        move_column_to_far_left(layout, column_nr)
-        restore_left(layout, column_nr - 2)
-    else
-        move_column_to_far_left(layout, column_nr + 1)
-        restore_left(layout, column_nr - 1)
+    local offset = direction == 'left' and -1 or 1
+    local target_column = layout[column_nr + offset]
+    vim.fn.win_splitmove(current_window_id, target_column[1], { vertical = true, rightbelow = direction == 'right' })
+    for i = #target_column, 2, -1 do
+        vim.fn.win_splitmove(target_column[i], target_column[1], { vertical = false, rightbelow = true })
     end
-
-    vim.api.nvim_set_current_win(current_window_id)
 end
 
 local function get_window_index_at_row(row_nr, column)
