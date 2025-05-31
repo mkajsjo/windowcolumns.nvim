@@ -29,6 +29,8 @@ Unlike a standard `:vsplit`, this works even when the current window is nested i
 require('windowcolumns').create_column('right')
 ```
 
+---
+
 ### `move_column(direction)`
 
 Moves the entire column (all horizontal splits in the current column) to the left or right.
@@ -41,6 +43,8 @@ This allows repositioning a group of vertically aligned windows as a unit.
 ```lua
 require('windowcolumns').move_column('right')
 ```
+
+---
 
 ### `move_window(direction, column_opt)`
 
