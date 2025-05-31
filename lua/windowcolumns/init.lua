@@ -1,4 +1,4 @@
-local tf = require('table_functions')
+local tf = require('windowcolumns.table_functions')
 
 local function is_normal_window(window_config)
     return not window_config.external and window_config.relative == ''
