@@ -19,6 +19,19 @@ local function restore_column(column, skip)
     end
 end
 
+local function restore_dimensions(windows)
+    for _, window in ipairs(windows) do
+        local width = vim.api.nvim_win_get_width(window.id)
+        local height = vim.api.nvim_win_get_height(window.id)
+        if width ~= window.width then
+            vim.api.nvim_win_set_width(window.id, window.width)
+        end
+        if height ~= window.height then
+            vim.api.nvim_win_set_height(window.id, window.height)
+        end
+    end
+end
+
 local function move_window_vertical(ctx, direction)
     local offset = direction == 'up' and -1 or 1
     local target = ctx.get_column()[ctx.row_index + offset]
@@ -64,6 +77,7 @@ function M.move_column(direction, ctx)
     move_next_to(current_column[1], target_column[1], direction)
     restore_column(current_column)
     restore_column(target_column)
+    restore_dimensions(ctx.ignored_windows)
 end
 
 local function move_window_to_new_column(ctx, direction)
@@ -104,6 +118,7 @@ function M.move_window(direction, column_opt)
             move_window_to_existing_column(ctx, direction)
         end
     end
+    restore_dimensions(ctx.ignored_windows)
 end
 
 function M.create_column(direction)
@@ -115,6 +130,7 @@ function M.create_column(direction)
     move_next_to(new_window_id, current_column[1], direction)
     restore_column(current_column)
     vim.api.nvim_set_current_win(new_window_id)
+    restore_dimensions(ctx.ignored_windows)
 end
 
 return M

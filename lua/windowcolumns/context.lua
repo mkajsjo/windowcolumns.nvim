@@ -10,10 +10,14 @@ local function get_windows()
         local config = vim.api.nvim_win_get_config(window_id)
         if is_normal_window(config) then
             local row, column = unpack(vim.api.nvim_win_get_position(window_id))
+            local width = vim.api.nvim_win_get_width(window_id)
+            local height = vim.api.nvim_win_get_height(window_id)
             table.insert(result, {
                 id = window_id,
                 row = row,
                 column = column,
+                width = width,
+                height = height,
             })
         end
     end
@@ -23,13 +27,15 @@ end
 local function build_columns(windows)
     local top_row = tf.min(tf.map(windows, function(win) return win.row end))
     local top_windows = tf.filter(windows, function(win) return win.row == top_row end)
-    local column_indexes = tf.flip_kvps(tf.sort(tf.map(top_windows, function(win) return win.column end)))
+    local column_indexes = tf.flip_kv(tf.sort(tf.map(top_windows, function(win) return win.column end)))
+    local column_widths = tf.map_kv(top_windows, function(_, win) return win.column, win.width end)
 
     local columns = {}
     local remaining = {}
     for _, win in ipairs(windows) do
         local column_index = column_indexes[win.column]
-        if column_index then
+        local column_width = column_widths[win.column]
+        if column_index and win.width <= column_width then
             columns[column_index] = columns[column_index] or {}
             table.insert(columns[column_index], win)
         else
@@ -46,12 +52,6 @@ local function build_columns(windows)
     return columns, remaining
 end
 
-local function get_window_layout()
-    local windows = get_windows()
-    local columns, _ = build_columns(windows)
-    return columns
-end
-
 local function get_window_index(columns, window_id)
     for c, column in ipairs(columns) do
         for r, window in ipairs(column) do
@@ -65,7 +65,7 @@ end
 local M = {}
 
 function M.create()
-    local columns = get_window_layout()
+    local columns, ignored_windows = build_columns(get_windows())
     local window_id = vim.api.nvim_tabpage_get_win(0)
     local column_index, row_index = get_window_index(columns, window_id)
     local window = columns[column_index][row_index]
@@ -74,6 +74,7 @@ function M.create()
         window = window,
         column_index = column_index,
         row_index = row_index,
+        ignored_windows = ignored_windows,
         get_column = function(direction)
             local offset = direction == 'left' and -1 or direction == 'right' and 1 or 0
             return columns[column_index + offset]

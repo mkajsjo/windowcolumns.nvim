@@ -70,10 +70,23 @@ end
 --- Swaps keys and values in a table.
 -- @param tbl A table with unique values that can be used as keys.
 -- @return A new table where each key becomes a value and each value becomes a key.
-function M.flip_kvps(tbl)
+function M.flip_kv(tbl)
     local result = {}
     for k, v in pairs(tbl) do
         result[v] = k
+    end
+    return result
+end
+
+--- Applies a function to each key-value pair in a table and returns a new table with the results.
+-- @param tbl A table of key-value pairs.
+-- @param func A function that takes (key, value) and returns (new_key, new_value).
+-- @return A new table where each key-value pair is the result of applying `func` to each pair in `tbl`.
+function M.map_kv(tbl, func)
+    local result = {}
+    for k, v in pairs(tbl) do
+        local new_k, new_v = func(k, v)
+        result[new_k] = new_v
     end
     return result
 end
