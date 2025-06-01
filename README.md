@@ -17,6 +17,8 @@ It lets you create full-height vertical splits, move entire columns of horizonta
 
 ### `create_column(direction)`
 
+![Demo of create_column](media/create_column.gif)
+
 Creates a new full-height vertical window (column) on the left or right of the current window.
 Unlike a standard `:vsplit`, this works even when the current window is nested inside horizontal splits.
 
@@ -33,6 +35,8 @@ require('windowcolumns').create_column('right')
 
 ### `move_column(direction)`
 
+![Demo of move_column](media/move_column.gif)
+
 Moves the entire column (all horizontal splits in the current column) to the left or right.
 This allows repositioning a group of vertically aligned windows as a unit.
 
@@ -47,6 +51,8 @@ require('windowcolumns').move_column('right')
 ---
 
 ### `move_window(direction, column_opt)`
+
+![Demo of move_window](media/move_window.gif)
 
 Moves the current window in the specified direction, with special logic for horizontal moves between columns.
 
