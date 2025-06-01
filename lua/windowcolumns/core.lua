@@ -66,6 +66,9 @@ local M = {}
 
 function M.move_column(direction, ctx)
     ctx = ctx or context.create()
+    if not ctx then
+        return
+    end
 
     if ctx.is_out_of_bounds(direction) then
         return
@@ -100,6 +103,9 @@ end
 
 function M.move_window(direction, column_opt)
     local ctx = context.create()
+    if not ctx then
+        return
+    end
 
     if direction == 'up' or direction == 'down' then
         if ctx.is_out_of_bounds(direction) then
@@ -123,6 +129,9 @@ end
 
 function M.create_column(direction)
     local ctx = context.create()
+    if not ctx then
+        return
+    end
 
     vim.cmd 'vsplit'
     local new_window_id = vim.api.nvim_tabpage_get_win(0)

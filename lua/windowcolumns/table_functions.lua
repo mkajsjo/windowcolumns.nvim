@@ -91,4 +91,17 @@ function M.map_kv(tbl, func)
     return result
 end
 
+--- Concatenates any number of array-style tables into one.
+-- @param ... Any number of tables with numeric indices.
+-- @return A new table containing all elements from the input tables in order.
+function M.concat(...)
+    local result = {}
+    for _, arr in ipairs({ ... }) do
+        for _, t in ipairs(arr) do
+            table.insert(result, t)
+        end
+    end
+    return result
+end
+
 return M
