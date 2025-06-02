@@ -86,7 +86,7 @@ function M.create()
         if column_index then
             return {
                 columns = columns,
-                window_id = window_id,
+                window = columns[column_index][row_index],
                 column_index = column_index,
                 row_index = row_index,
                 ignored_windows = ignored_windows,
