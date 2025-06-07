@@ -1,5 +1,9 @@
 # windowcolumns.nvim
 
+[![Neovim 0.9+](https://img.shields.io/badge/Neovim-0.9+-blue?logo=neovim)](https://neovim.io)
+![Version](https://img.shields.io/github/v/release/mkajsjo/windowcolumns.nvim)
+![LICENSE](https://img.shields.io/github/license/mkajsjo/windowcolumns.nvim)
+
 Column-first window management for Neovim.
 
 ---
@@ -82,6 +86,7 @@ Using [lazy.nvim](https://github.com/folke/lazy.nvim):
 ```lua
 {
     'mkajsjo/windowcolumns.nvim',
+    version = 'v1.0.0',
     keys = {
         { '<leader>wv', function() require('windowcolumns').create_column() end },
         { '<leader>wh', function() require('windowcolumns').move_column('left') end },
@@ -96,12 +101,15 @@ Using [lazy.nvim](https://github.com/folke/lazy.nvim):
 
 Using [vim-plug](https://github.com/junegunn/vim-plug):
 ```viml
-Plug 'mkajsjo/windowcolumns.nvim'
+Plug 'mkajsjo/windowcolumns.nvim', { 'tag': 'v1.0.0' }
 ```
 
 Using [packer.nvim](https://github.com/wbthomason/packer.nvim):
 ```lua
-use 'mkajsjo/windowcolumns.nvim'
+use {
+    'mkajsjo/windowcolumns.nvim',
+    tag = 'v1.0.0',
+}
 ```
 
 **Example configuration if not using lazy.nvim**:
